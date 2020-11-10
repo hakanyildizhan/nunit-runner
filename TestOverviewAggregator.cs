@@ -47,8 +47,11 @@ namespace NUnitRunner
                 });
 
             foreach (var file in files)
-                parseOutputBlock.Post(file);
-
+            {
+                if (File.Exists(file))
+                    parseOutputBlock.Post(file);
+            }
+            
             parseOutputBlock.Complete();
             gatherBlock.Completion.Wait();
 

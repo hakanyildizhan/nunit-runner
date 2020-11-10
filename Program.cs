@@ -89,7 +89,13 @@ namespace NUnitRunner
             }
 
             Trace.TraceInformation("Completed");
-            File.Copy("NUnitRunner.log", Path.Combine(config.OutputDirectory, "NUnitRunner.log"), true);
+
+            string logFile = Path.Combine(Directory.GetCurrentDirectory(), "NUnitRunner.log");
+            if (File.Exists(logFile))
+            {
+                File.Copy(logFile, Path.Combine(config.OutputDirectory, "NUnitRunner.log"), true);
+            }
+            
             return 0;
         }
     }
