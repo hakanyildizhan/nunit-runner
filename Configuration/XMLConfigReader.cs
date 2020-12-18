@@ -68,7 +68,7 @@ namespace NUnitRunner.Configuration
         {
             string outputFilename = testName;
             int i = 1;
-            while (availableRuns.Where(t => t.OutputFileName == outputFilename).Any())
+            while (availableRuns.Any(t => t.OutputFileName == outputFilename))
             {
                 i++;
                 outputFilename = $"{testName}_{i}";

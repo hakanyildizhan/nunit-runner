@@ -76,10 +76,10 @@ namespace NUnitRunner
             doc.Descendants("test-suite").Attributes("time").ToList().ForEach(t => t.Value = data.Duration.ToString("0.000", CultureInfo.InvariantCulture));
             doc.Descendants("test-suite").Attributes("result").ToList().ForEach(r => r.Value = data.Result.ToString());
             doc.Descendants("test-suite").Attributes("success").ToList().ForEach(s => s.Value = data.Success.ToString().First().ToString().ToUpper() + data.Success.ToString().Substring(1));
-            doc.Descendants("test-suite").Where(d => d.Attribute("type").Value == "TestFixture").First().Element("categories").Remove();
-            doc.Descendants("test-suite").Where(d => d.Attribute("type").Value == "TestFixture").First().Element("results").Descendants("test-case").Remove();
-            doc.Descendants("test-suite").Where(d => d.Attribute("type").Value == "TestFixture").First().Element("results").Add(data.TestCaseNodes);
-            doc.Descendants("test-suite").Where(d => d.Attribute("type").Value == "TestFixture").First().Attribute("asserts").Value = data.Asserts.ToString();
+            doc.Descendants("test-suite").First(d => d.Attribute("type").Value == "TestFixture").Element("categories").Remove();
+            doc.Descendants("test-suite").First(d => d.Attribute("type").Value == "TestFixture").Element("results").Descendants("test-case").Remove();
+            doc.Descendants("test-suite").First(d => d.Attribute("type").Value == "TestFixture").Element("results").Add(data.TestCaseNodes);
+            doc.Descendants("test-suite").First(d => d.Attribute("type").Value == "TestFixture").Attribute("asserts").Value = data.Asserts.ToString();
 
             doc.Save(outputFile);
         }
@@ -100,7 +100,7 @@ namespace NUnitRunner
             int invalid = results.Select(r => r.Invalid).Aggregate((a, b) => a + b);
             int asserts = results.Select(r => r.Asserts).Aggregate((a, b) => a + b);
             TestRunResult result = results.Select(r => r.Result).Contains(TestRunResult.Failure) ? TestRunResult.Failure : TestRunResult.Success;
-            bool success = results.Select(r => r.Success).Contains(false) ? false : true;
+            bool success = !results.Select(r => r.Success).Contains(false);
             IEnumerable<XElement> testCaseNodes = results.SelectMany(r => r.TestCaseNodes);
 
             return new TestRunAggregateOverview
@@ -143,12 +143,12 @@ namespace NUnitRunner
 
             var ts = tr.Element("test-suite");
             TestRunResult result = ts.Attribute("result").Value == "Success" ? TestRunResult.Success : TestRunResult.Failure;
-            bool success = ts.Attribute("success").Value == "True" ? true : false;
+            bool success = ts.Attribute("success").Value == "True";
 
             double duration = Convert.ToDouble(ts.Attribute("time").Value, CultureInfo.InvariantCulture);
             DateTime startTime = finishTime.Subtract(TimeSpan.FromSeconds(duration));
 
-            var fixtureNode = doc.Descendants("test-suite").Where(ele => ele.Attribute("type").Value == "TestFixture").FirstOrDefault();
+            var fixtureNode = doc.Descendants("test-suite").FirstOrDefault(ele => ele.Attribute("type").Value == "TestFixture");
             List<string> generalCategories = fixtureNode.Element("categories").Descendants("category").Select(c => c.Attribute("name").Value).ToList();
             string testFixture = fixtureNode.Attribute("name").Value;
             int asserts = doc.Descendants("test-case").Select(d => Convert.ToInt32(d.Attribute("asserts").Value)).Aggregate((a, b) => a + b);

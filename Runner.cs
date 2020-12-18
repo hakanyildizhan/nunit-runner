@@ -23,7 +23,7 @@ namespace NUnitRunner
         private readonly TestConfiguration _config;
         private readonly ConcurrentDictionary<int, TestRun> runningTests;
         private readonly ConcurrentBag<TestResult> results;
-        private static object lockObj = new object();
+        private static readonly object lockObj = new object();
 
         public Runner(TestConfiguration config)
         {

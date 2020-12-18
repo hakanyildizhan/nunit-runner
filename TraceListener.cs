@@ -10,11 +10,24 @@ using System.Diagnostics;
 namespace NUnitRunner
 {
     /// <summary>
-    /// Used for outputting application messages. See App.config file for details.
+    /// Used for outputting application messages to a file. See App.config file for details.
     /// </summary>
     public class TraceListener : TextWriterTraceListener
     {
         public TraceListener(string fileName) : base(fileName) { }
+
+        public override void Write(string message)
+        {
+            base.Write(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fffffff ") + message);
+        }
+    }
+
+    /// <summary>
+    /// Used for outputting application messages to the console. See App.config file for details.
+    /// </summary>
+    public class ConsoleListener : ConsoleTraceListener
+    {
+        public ConsoleListener() : base() { }
 
         public override void Write(string message)
         {

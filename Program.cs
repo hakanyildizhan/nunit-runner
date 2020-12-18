@@ -5,17 +5,22 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using NUnitRunner.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace NUnitRunner
 {
+    /// <summary>
+    /// This console application brings parallel-run capabilities for NUnit tests, which are supplied in an *.xml configuration file.
+    /// </summary>
     class Program
     {
         /// <summary>
-        /// This console application brings parallel-run capabilities for NUnit tests, which are supplied in an *.xml configuration file. These arguments need to be supplied to this application:
+        /// These arguments need to be supplied to this application:
         /// 1. Full path of the NUnit Test Assembly
         /// 2. Path of the NUnit console test executor
         /// 3. XML configuration file
@@ -54,6 +59,8 @@ namespace NUnitRunner
                 return 1;
             }
 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             IConfigReader configReader = new XMLConfigReader();
             var config = configReader.GetConfiguration(args[2]);
             config.Assembly = args[0];
@@ -89,6 +96,8 @@ namespace NUnitRunner
             }
 
             Trace.TraceInformation("Completed");
+            stopwatch.Stop();
+            Trace.TraceInformation($"Total duration: {GetRunDuration(stopwatch.Elapsed)}");
 
             string logFile = Path.Combine(Directory.GetCurrentDirectory(), "NUnitRunner.log");
             if (File.Exists(logFile))
@@ -97,6 +106,32 @@ namespace NUnitRunner
             }
             
             return 0;
+        }
+
+        private static string GetRunDuration(TimeSpan span)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (span.TotalHours >= 24)
+            {
+                sb.Append(span.TotalHours % 24 > 1 ? string.Format("{0:%d} days ", span) : string.Format("{0:%d} day ", span));
+            }
+
+            if (span.TotalHours % 24 >= 1)
+            {
+                sb.Append(span.TotalHours % 24 > 1 ? string.Format("{0:%h} hours ", span) : string.Format("{0:%h} hour ", span));
+            }
+
+            if (span.Minutes % 60 > 0)
+            {
+                sb.Append(span.Minutes % 60 > 1 ? string.Format("{0:%m} minutes ", span) : string.Format("{0:%m} minute ", span));
+            }
+
+            if (span.Seconds % 60 > 0)
+            {
+                sb.Append(span.Seconds % 60 > 1 ? string.Format("{0:%s} seconds", span) : string.Format("{0:%s} second", span));
+            }
+
+            return sb.ToString();
         }
     }
 }
