@@ -66,7 +66,8 @@ namespace NUnitRunner
             config.Assembly = args[0];
             config.NUnitExecutable = args[1];
             config.OutputDirectory = args[3];
-            RunResult result = new Runner(config).Run();
+            var nunitRunner = new Runner(config);
+            RunResult result = nunitRunner.Run();
 
             if (!result.TestResults.Select(r => r.Succeeded).Contains(true))
             {
@@ -77,6 +78,27 @@ namespace NUnitRunner
                 Trace.TraceWarning("Some tests were not successful.");
             }
 
+            if (config.RetryFailedTests)
+            {
+                Trace.TraceInformation("Failed tests will be retried.");
+                var failedTestCases = new List<TestCase>();
+                result.TestResults.ForEach(r => r.TestCaseResults.Where(tc => tc.Executed && (tc.Result == TestRunResult.Failure || tc.Result == TestRunResult.Error)).ToList().ForEach(tc => failedTestCases.Add(tc)));
+
+                if (failedTestCases.Any())
+                {
+                    Trace.TraceInformation($"There are {failedTestCases.Count} failed tests to retry.");
+                    nunitRunner.RunTestCases(failedTestCases);
+
+                    foreach (var testCase in failedTestCases)
+                    {
+                        string testRunOutputFilePath = Path.Combine(config.OutputDirectory, testCase.TestRunOutputFileName) + ".xml";
+                        new NUnitXmlParser(testRunOutputFilePath).UpdateOutputFile(testCase);
+                    }
+                }
+
+                Trace.TraceInformation("Rerun completed.");
+            }
+            
             // combine results if necessary
             var groupedByName = config.TestRuns.GroupBy(s => s.Name).Select(g => new { Name = g.Key, Count = g.Count() });
             bool combine = groupedByName.Any(g => g.Count > 1);

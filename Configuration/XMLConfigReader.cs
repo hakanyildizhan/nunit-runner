@@ -20,6 +20,7 @@ namespace NUnitRunner.Configuration
         {
             var xml = XDocument.Load(configurationFile);
             int maxParallelRuns = int.Parse(xml.Root.Descendants("MaxParallelRuns").FirstOrDefault().Value);
+            bool.TryParse(xml.Root.Descendants("RetryFailedTests").FirstOrDefault()?.Value, out bool retryFailedTests);
 
             var testNodes = xml.Root.Descendants("Test");
             var testRuns = new List<TestRun>();
@@ -38,7 +39,7 @@ namespace NUnitRunner.Configuration
                 {
                     testRuns.Add(new TestRun
                     {
-                        Id = _currentId++,
+                        Id = ++_currentId,
                         Name = name,
                         Fixture = fixture,
                         OutputFileName = GetUniqueOutputFileName(name, testRuns)
@@ -51,7 +52,7 @@ namespace NUnitRunner.Configuration
                     {
                         testRuns.Add(new TestRun
                         {
-                            Id = _currentId++,
+                            Id = ++_currentId,
                             Name = name,
                             Fixture = fixture,
                             Category = cat,
@@ -61,7 +62,12 @@ namespace NUnitRunner.Configuration
                 }
             }
 
-            return new TestConfiguration { MaxParallelRuns = maxParallelRuns, TestRuns = testRuns };
+            return new TestConfiguration
+            {
+                MaxParallelRuns = maxParallelRuns,
+                RetryFailedTests = retryFailedTests,
+                TestRuns = testRuns
+            };
         }
 
         private string GetUniqueOutputFileName(string testName, List<TestRun> availableRuns)

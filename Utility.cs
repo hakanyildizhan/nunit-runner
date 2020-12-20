@@ -4,17 +4,16 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace NUnitRunner
 {
-    /// <summary>
-    /// Test run result.
-    /// </summary>
-    public enum TestRunResult
+    public static class Utility
     {
-        Success,
-        Failure,
-        Ignored,
-        Error,
-        Unknown
+        public static TestRunResult ParseRunResult(string input)
+        {
+            bool success = Enum.TryParse(input, out TestRunResult result);
+            return success ? result : TestRunResult.Unknown;
+        }
     }
 }

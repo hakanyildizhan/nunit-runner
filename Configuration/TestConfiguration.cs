@@ -26,5 +26,6 @@ namespace NUnitRunner.Configuration
         public string Assembly { get; set; }
         public string OutputDirectory { get; set; }
         public string NUnitExecutable { get; set; }
+        public bool RetryFailedTests { get; set; }
     }
 }

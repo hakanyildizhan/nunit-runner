@@ -151,7 +151,9 @@ namespace NUnitRunner
             var fixtureNode = doc.Descendants("test-suite").FirstOrDefault(ele => ele.Attribute("type").Value == "TestFixture");
             List<string> generalCategories = fixtureNode.Element("categories").Descendants("category").Select(c => c.Attribute("name").Value).ToList();
             string testFixture = fixtureNode.Attribute("name").Value;
-            int asserts = doc.Descendants("test-case").Select(d => Convert.ToInt32(d.Attribute("asserts").Value)).Aggregate((a, b) => a + b);
+            int asserts = doc.Descendants("test-case")
+                .Where(d => d.Attribute("result").Value != "Ignored")
+                .Select(d => Convert.ToInt32(d.Attribute("asserts").Value)).Aggregate((a, b) => a + b);
 
             doc.Descendants("test-case").ToList().ForEach(d =>
             {

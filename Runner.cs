@@ -83,11 +83,12 @@ namespace NUnitRunner
         public TestResult RunTest(TestRun test)
         {
             var stopwatch = Stopwatch.StartNew();
+            string xmlOutputFile = Path.Combine(_config.OutputDirectory, $"{test.OutputFileName}.xml");
 
             var consoleArgs = new List<string>
             {
                 _config.Assembly, // Assembly
-                $"/xml:\"{Path.Combine(_config.OutputDirectory, $"{test.OutputFileName}.xml")}\"", // XML Output file
+                $"/xml:\"{xmlOutputFile}\"", // XML Output file
                 $"/output:\"{Path.Combine(_config.OutputDirectory, $"TestOutput_{test.OutputFileName}.log")}\"", // Output log file
                 "/labels",
                 "/trace=Error",
@@ -116,7 +117,78 @@ namespace NUnitRunner
             process.WaitForExit();
             stopwatch.Stop();
             File.WriteAllText(Path.Combine(_config.OutputDirectory, $"NUnitTrace_{test.OutputFileName}.log"), output);
-            return new TestResult { Succeeded = process.ExitCode == 0, Duration = stopwatch.Elapsed, Test = test };
+
+            var testCases = new NUnitXmlParser(xmlOutputFile).GetTestCases();
+            testCases.ToList().ForEach(tc =>
+            {
+                tc.TestRunName = test.Name;
+                tc.TestRunOutputFileName = test.OutputFileName;
+            });
+
+            return new TestResult
+            {
+                Succeeded = process.ExitCode == 0,
+                Duration = stopwatch.Elapsed,
+                Test = test,
+                TestCaseResults = testCases
+            };
+        }
+
+        /// <summary>
+        /// Runs individual test cases serially.
+        /// </summary>
+        /// <param name="testCases"></param>
+        /// <returns></returns>
+        public void RunTestCases(List<TestCase> testCases)
+        {
+            string xmlOutputFile = Path.Combine(_config.OutputDirectory, "FailedTestCases.xml");
+            string outputLogFile = Path.Combine(_config.OutputDirectory, $"TestOutput_FailedTestCases.log");
+            string runArgument = string.Join(",", testCases.Select(tc => tc.TestCaseName));
+
+            var consoleArgs = new List<string>
+                {
+                    _config.Assembly, // Assembly
+                    $"/xml:\"{xmlOutputFile}\"", // XML Output file
+                    $"/output:\"{outputLogFile}\"", // Output log file
+                    $"/run:{runArgument}", // comma-separated full names of the individual test-cases to run
+                    "/labels",
+                    "/trace=Error",
+                    "/noshadow",
+                    "/nologo"
+                };
+
+            string arg = string.Join(" ", consoleArgs.ToArray());
+            Process process = new Process();
+            process.StartInfo = new ProcessStartInfo($"\"{_config.NUnitExecutable}\"", arg);
+            process.StartInfo.UseShellExecute = false;
+            process.Start();
+            process.WaitForExit();
+
+            var testCaseResults = new NUnitXmlParser(xmlOutputFile).GetTestCases();
+
+            foreach (var testCaseResult in testCaseResults)
+            {
+                var testCase = testCases.FirstOrDefault(tc => tc.TestCaseName == testCaseResult.TestCaseName);
+
+                if (testCase != null)
+                {
+                    testCase.Duration = Math.Round(testCase.Duration + testCaseResult.Duration, 3); // add to previous run duration
+                    testCase.Result = testCaseResult.Result;
+                    testCase.Success = testCaseResult.Success;
+                    testCase.Executed = testCaseResult.Executed;
+                }
+            }
+
+            // Delete temporary output files
+            if (File.Exists(xmlOutputFile))
+            {
+                File.Delete(xmlOutputFile);
+            }
+
+            if (File.Exists(outputLogFile))
+            {
+                File.Delete(outputLogFile);
+            }
         }
 
         private void Process(TestResult result)
@@ -128,6 +200,14 @@ namespace NUnitRunner
                 (span.Milliseconds > 0 ? $" {span.Milliseconds} milisecond(s)" : "");
 
             Trace.TraceInformation($"Test {result.Test.OutputFileName} is completed in {duration}.");
+
+            int failedTestCount = result.TestCaseResults.Count(tc => !tc.Success);
+
+            if (failedTestCount > 0)
+            {
+                Trace.TraceInformation($"Test {result.Test.OutputFileName} has {failedTestCount} failed tests.");
+            }
+
             results.Add(result);
         }
     }
