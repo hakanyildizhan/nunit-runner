@@ -141,8 +141,9 @@ namespace NUnitRunner
         /// <returns></returns>
         public void RunTestCases(List<TestCase> testCases)
         {
-            string xmlOutputFile = Path.Combine(_config.OutputDirectory, "FailedTestCases.xml");
-            string outputLogFile = Path.Combine(_config.OutputDirectory, $"TestOutput_FailedTestCases.log");
+            string xmlOutputFile = Path.Combine(_config.OutputDirectory, "FailedTestRerun.xml");
+            string outputLogFile = Path.Combine(_config.OutputDirectory, $"TestOutput_FailedTestRerun.log");
+            string traceLogFile = Path.Combine(_config.OutputDirectory, $"NUnitTrace_FailedTestRerun.log");
             string runArgument = string.Join(",", testCases.Select(tc => tc.TestCaseName));
 
             var consoleArgs = new List<string>
@@ -160,9 +161,12 @@ namespace NUnitRunner
             string arg = string.Join(" ", consoleArgs.ToArray());
             Process process = new Process();
             process.StartInfo = new ProcessStartInfo($"\"{_config.NUnitExecutable}\"", arg);
+            process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
             process.Start();
+            string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            File.WriteAllText(traceLogFile, output);
 
             var testCaseResults = new NUnitXmlParser(xmlOutputFile).GetTestCases();
 
@@ -179,15 +183,10 @@ namespace NUnitRunner
                 }
             }
 
-            // Delete temporary output files
+            // Delete temporary XML output
             if (File.Exists(xmlOutputFile))
             {
                 File.Delete(xmlOutputFile);
-            }
-
-            if (File.Exists(outputLogFile))
-            {
-                File.Delete(outputLogFile);
             }
         }
 
