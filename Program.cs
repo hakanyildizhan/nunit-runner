@@ -69,31 +69,32 @@ namespace NUnitRunner
             var nunitRunner = new Runner(config);
             RunResult result = nunitRunner.Run();
 
-            if (!result.TestResults.Select(r => r.Succeeded).Contains(true))
+            if (result.TestResults.Select(r => r.Succeeded).Contains(false))
             {
-                Trace.TraceError("All tests have failed.");
-            }
-            else if (result.TestResults.Select(r => r.Succeeded).Contains(false))
-            {
-                Trace.TraceWarning("Some tests were not successful.");
+                Trace.TraceWarning("Some nunit-console processes exited with an error.");
             }
 
-            if (config.RetryFailedTests)
-            {
-                Trace.TraceInformation("Failed tests will be retried.");
-                var failedTestCases = new List<TestCase>();
-                result.TestResults.ForEach(r => r.TestCaseResults.Where(tc => tc.Executed && (tc.Result == TestRunResult.Failure || tc.Result == TestRunResult.Error)).ToList().ForEach(tc => failedTestCases.Add(tc)));
+            var failedTestCases = new List<TestCase>();
+            result.TestResults.ForEach(r => r.TestCaseResults.Where(tc => tc.Executed && (tc.Result == TestRunResult.Failure || tc.Result == TestRunResult.Error)).ToList().ForEach(tc => failedTestCases.Add(tc)));
 
-                if (failedTestCases.Any())
+            if (failedTestCases.Any())
+            {
+                Trace.TraceInformation($"There are {failedTestCases.Count} failed tests");
+            }
+            else
+            {
+                Trace.TraceInformation($"All test runs were successful");
+            }
+
+            if (config.RetryFailedTests && failedTestCases.Any())
+            {
+                Trace.TraceInformation($"Failed tests will be retried");
+                nunitRunner.RunTestCases(failedTestCases);
+
+                foreach (var testCase in failedTestCases)
                 {
-                    Trace.TraceInformation($"There are {failedTestCases.Count} failed tests to retry.");
-                    nunitRunner.RunTestCases(failedTestCases);
-
-                    foreach (var testCase in failedTestCases)
-                    {
-                        string testRunOutputFilePath = Path.Combine(config.OutputDirectory, testCase.TestRunOutputFileName) + ".xml";
-                        new NUnitXmlParser(testRunOutputFilePath).UpdateOutputFile(testCase);
-                    }
+                    string testRunOutputFilePath = Path.Combine(config.OutputDirectory, testCase.TestRunOutputFileName) + ".xml";
+                    new NUnitXmlParser(testRunOutputFilePath).UpdateOutputFile(testCase);
                 }
 
                 Trace.TraceInformation("Rerun completed.");
