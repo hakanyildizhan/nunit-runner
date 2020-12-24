@@ -118,12 +118,27 @@ namespace NUnitRunner
             stopwatch.Stop();
             File.WriteAllText(Path.Combine(_config.OutputDirectory, $"NUnitTrace_{test.OutputFileName}.log"), output);
 
-            var testCases = new NUnitXmlParser(xmlOutputFile).GetTestCases();
-            testCases.ToList().ForEach(tc =>
+            if (process.ExitCode != 0)
             {
-                tc.TestRunName = test.Name;
-                tc.TestRunOutputFileName = test.OutputFileName;
-            });
+                Trace.TraceError($"Test run for {test.OutputFileName} has exited with an error");
+            }
+
+            IList<TestCase> testCases = new List<TestCase>();
+
+            if (!File.Exists(xmlOutputFile))
+            {
+                Trace.TraceError($"Output file for {test.OutputFileName} was not created due to an error");
+            }
+
+            else
+            {
+                testCases = new NUnitXmlParser(xmlOutputFile).GetTestCases();
+                testCases.ToList().ForEach(tc =>
+                {
+                    tc.TestRunName = test.Name;
+                    tc.TestRunOutputFileName = test.OutputFileName;
+                });
+            }
 
             return new TestResult
             {
@@ -168,7 +183,16 @@ namespace NUnitRunner
             process.WaitForExit();
             File.WriteAllText(traceLogFile, output);
 
-            var testCaseResults = new NUnitXmlParser(xmlOutputFile).GetTestCases();
+            IList<TestCase> testCaseResults = new List<TestCase>();
+
+            if (File.Exists(xmlOutputFile))
+            {
+                testCaseResults = new NUnitXmlParser(xmlOutputFile).GetTestCases();
+            }
+            else
+            {
+                Trace.TraceError($"Output file for {xmlOutputFile} was not created due to an error");
+            }
 
             foreach (var testCaseResult in testCaseResults)
             {

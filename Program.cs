@@ -94,7 +94,11 @@ namespace NUnitRunner
                 foreach (var testCase in failedTestCases)
                 {
                     string testRunOutputFilePath = Path.Combine(config.OutputDirectory, testCase.TestRunOutputFileName) + ".xml";
-                    new NUnitXmlParser(testRunOutputFilePath).UpdateOutputFile(testCase);
+
+                    if (File.Exists(testRunOutputFilePath))
+                    {
+                        new NUnitXmlParser(testRunOutputFilePath).UpdateOutputFile(testCase);
+                    }
                 }
 
                 Trace.TraceInformation("Rerun completed.");

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -49,7 +50,13 @@ namespace NUnitRunner
             foreach (var file in files)
             {
                 if (File.Exists(file))
+                {
                     parseOutputBlock.Post(file);
+                }
+                else
+                {
+                    Trace.TraceWarning($"File {file} will not be combined, because it does not exist");
+                }
             }
             
             parseOutputBlock.Complete();
