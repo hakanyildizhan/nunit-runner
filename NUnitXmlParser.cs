@@ -1,11 +1,15 @@
-﻿using NUnitRunner.Configuration;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright company="Siemens AG" file="NUnitXmlParser.cs">
+//   Copyright © Siemens AG 2020-2021. All rights reserved. Confidential.
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+
+using NUnitRunner.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace NUnitRunner
@@ -32,11 +36,13 @@ namespace NUnitRunner
 
             foreach (var testCaseNode in _document.Descendants("test-case"))
             {
+                var testResult = Utility.ParseRunResult(testCaseNode.Attribute("result").Value);
+
                 testCases.Add(new TestCase()
                 {
                     Executed = testCaseNode.Attribute("executed").Value == "True",
-                    Result = Utility.ParseRunResult(testCaseNode.Attribute("result").Value),
-                    Success = testCaseNode.Attribute("success")?.Value == "True",
+                    Result = testResult,
+                    Success = testResult == TestRunResult.Ignored || testCaseNode.Attribute("success")?.Value == "True",
                     TestCaseName = testCaseNode.Attribute("name").Value,
                     Duration = testCaseNode.Attribute("time") != null ? Convert.ToDouble(testCaseNode.Attribute("time").Value, CultureInfo.InvariantCulture) : 0
                 });
