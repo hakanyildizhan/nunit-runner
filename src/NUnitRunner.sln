@@ -22,12 +22,4 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {81068C01-F603-4B67-AB91-583E9BD9FDC3}
 	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://venus.tfs.siemens.net/tfs/tia
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = NUnitRunner.csproj
-		SccLocalPath1 = .
-	EndGlobalSection
 EndGlobal

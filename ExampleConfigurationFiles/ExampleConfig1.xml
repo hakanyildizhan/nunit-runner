@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+  <Tests>
+    <Test>
+      <Name>3RW5 Upload Tests</Name>
+      <Fixture>Siemens.Simatic.HwConfiguration.BusinessLogic.SiriusHSP.Test.TestModules3RW5Upload</Fixture>
+    </Test>
+    <Test>
+      <Name>3RW5 Compile Tests</Name>
+      <Fixture>Siemens.Simatic.HwConfiguration.BusinessLogic.SiriusHSP.Test.TestModules3RW5Compile</Fixture>
+    </Test>
+    <Test>
+      <Name>3RW5 Device Exchange Tests</Name>
+      <Fixture>Siemens.Simatic.HwConfiguration.BusinessLogic.SiriusHSP.Test.TestModules3RW5ExchangeDevice</Fixture>
+    </Test>
+    <Test>
+      <Name>3RW5 Openness Tests</Name>
+      <Fixture>Siemens.Simatic.HwConfiguration.BusinessLogic.SiriusHSP.Test.TestModules3RW5Openness</Fixture>
+    </Test>
+    <Test>
+      <Name>3RW5 Plug and Delete Tests</Name>
+      <Fixture>Siemens.Simatic.HwConfiguration.BusinessLogic.SiriusHSP.Test.TestModules3RW5PlugAndDelete</Fixture>
+    </Test>
+    <Test>
+      <Name>3RW5 Consistency Check Tests</Name>
+      <Categories>
+        <Category>ConsistencyCheck+3RW5</Category>
+        <Category>ConsistencyCheck+3RW55+V2.1</Category>
+        <Category>ConsistencyCheck+3RW55F+V1.0+Invalid</Category>
+        <Category>ConsistencyCheck+3RW55F+V1.0+Valid</Category>
+        <Category>ConsistencyCheck+3RW55F+V1.1+Invalid</Category>
+        <Category>ConsistencyCheck+3RW55F+V1.1+Valid</Category>
+      </Categories>
+    </Test>
+  </Tests>
+  <MaxParallelRuns>4</MaxParallelRuns>
+  <RetryFailedTests>true</RetryFailedTests>
+</Configuration>
